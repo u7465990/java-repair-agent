@@ -10,6 +10,8 @@ ARG LANG_BUGGY_SHA=396afc3e4693cfee182efe582455f2d97058c068
 RUN apt-get update && apt-get install -y --no-install-recommends \
       perl git curl unzip ca-certificates ant maven \
       openjdk-8-jdk-headless python3 python3-venv \
+      libdbi-perl libdbd-csv-perl libjson-perl libjson-parse-perl \
+      libperl-critic-perl libstring-interpolate-perl liburi-perl \
     && rm -rf /var/lib/apt/lists/*
 
 # Defects4J insists on Java 11 for its own checks, which is why java stays first
