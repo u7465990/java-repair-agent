@@ -12,21 +12,31 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       openjdk-8-jdk-headless python3 python3-venv \
     && rm -rf /var/lib/apt/lists/*
 
-# Lang-1 builds with source/target 1.5, which only JDK 8 still accepts.
+# Defects4J insists on Java 11 for its own checks, which is why java stays first
+# on PATH. Ant honours JAVA_HOME, so compilation runs on JDK 8: Lang-1 uses
+# source/target 1.5, which javac 11 rejects.
 ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
-ENV PATH=$JAVA_HOME/bin:$PATH
 
 # Sparse, blobless clone: only the framework pieces Lang needs (~10 MB).
 RUN git clone --depth 1 --filter=blob:none --no-checkout $D4J_REPO /opt/defects4j \
     && cd /opt/defects4j \
-    && git sparse-checkout init --cone \
-    && git sparse-checkout set framework/bin framework/core framework/lib \
-         framework/projects/Lang framework/projects/lib \
+    && git sparse-checkout init --no-cone \
+    && git sparse-checkout set /framework/bin/ /framework/core/ /framework/util/ \
+         /framework/lib/ /framework/projects/Lang/ /framework/projects/lib/ \
+         '/framework/projects/*.xml' \
     && git checkout
 
+# Defects4J refuses to start unless init.sh ran. These stubs satisfy its checks
+# without downloading Major, EvoSuite, Randoop or the Gradle distributions.
+RUN mkdir -p /opt/defects4j/major/bin \
+    && ln -s /usr/bin/ant /opt/defects4j/major/bin/ant \
+    && mkdir -p /opt/defects4j/framework/lib/test_generation/generation \
+         /opt/defects4j/framework/lib/build_systems/gradle/dists \
+         /opt/defects4j/framework/lib/build_systems/gradle/deps \
+    && printf 'Defects4J version 3\n' > /opt/defects4j/project_repos/README
+
 # One shallow bare repository containing the buggy commit (~1 MB).
-RUN mkdir -p /opt/defects4j/project_repos \
-    && git init --bare /opt/defects4j/project_repos/commons-lang.git \
+RUN git init --bare /opt/defects4j/project_repos/commons-lang.git \
     && git -C /opt/defects4j/project_repos/commons-lang.git fetch --depth 1 \
          $LANG_REPO $LANG_BUGGY_SHA \
     && git -C /opt/defects4j/project_repos/commons-lang.git update-ref \
