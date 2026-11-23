@@ -61,6 +61,24 @@ uv run java-agent d4j smoke -p Lang -b 1
 ```
 
 The checkout lands in `work/Lang-1/repo`; the container is removed afterwards.
+On a machine without a fast network, the same flow runs in GitHub Actions:
+trigger the `d4j-smoke` workflow instead of building locally.
+
+### Verified baseline (Lang-1)
+
+```text
+compile: ok
+trigger tests: 1
+baseline failing: 3
+  - org.apache.commons.lang3.math.NumberUtilsTest::TestLang747
+  - org.apache.commons.lang3.time.DateUtilsTest::testLANG799_DE_OK
+  - org.apache.commons.lang3.time.DateUtilsTest::testLANG799_EN_WITH_DE_LOCALE
+```
+
+The trigger test fails as expected. The two `DateUtilsTest` failures are
+locale-dependent and exist independently of the bug: this is exactly why
+verification compares against the baseline failing set instead of requiring an
+all-green suite.
 
 ## Layout
 

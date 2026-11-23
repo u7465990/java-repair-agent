@@ -43,6 +43,8 @@ def run_baseline(case: Case, sandbox: Sandbox, dest: str) -> CaseResult:
         raise RuntimeError(f"checkout failed for {case.key}: {checkout.output[-2000:]}")
     compile_result = d4j.compile(dest)
     report = d4j.test(dest)
+    if report.exit_code != 0 and not report.failing:
+        raise RuntimeError(f"test run failed without parseable failures: {report.output[-1500:]}")
     trigger = set(d4j.export("tests.trigger", dest))
     return CaseResult(
         case=case,
