@@ -99,6 +99,9 @@ def smoke(
         console.print(f"[red]{exc}[/red]")
         raise typer.Exit(code=1) from exc
 
+    (case_dir / "compile.log").write_text(result.compile_output, encoding="utf-8")
+    (case_dir / "baseline-test.log").write_text(result.report.output, encoding="utf-8")
+
     console.print(f"compile: {'ok' if result.compile_ok else 'failed'}")
     console.print(f"trigger tests: {len(result.trigger)}")
     console.print(f"baseline failing: {len(result.report.failing)}")
@@ -106,3 +109,5 @@ def smoke(
         console.print(f"  - {test_name}")
     if not result.report.failing:
         console.print("[yellow]No failing tests at baseline; check the bug id.[/yellow]")
+        tail = "\n".join(result.report.output.splitlines()[-15:])
+        console.print(f"[dim]{tail}[/dim]")

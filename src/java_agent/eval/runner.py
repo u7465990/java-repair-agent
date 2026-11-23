@@ -28,6 +28,7 @@ class CaseResult:
     compile_ok: bool
     report: TestReport
     trigger: set[str] = field(default_factory=set)
+    compile_output: str = ""
 
     @property
     def target_fixed(self) -> bool:
@@ -43,4 +44,10 @@ def run_baseline(case: Case, sandbox: Sandbox, dest: str) -> CaseResult:
     compile_result = d4j.compile(dest)
     report = d4j.test(dest)
     trigger = set(d4j.export("tests.trigger", dest))
-    return CaseResult(case=case, compile_ok=compile_result.ok, report=report, trigger=trigger)
+    return CaseResult(
+        case=case,
+        compile_ok=compile_result.ok,
+        report=report,
+        trigger=trigger,
+        compile_output=compile_result.output,
+    )
