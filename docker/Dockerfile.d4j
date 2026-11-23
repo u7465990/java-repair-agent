@@ -9,7 +9,7 @@ ARG LANG_BUGGY_SHA=396afc3e4693cfee182efe582455f2d97058c068
 ARG LANG_FIXED_SHA=d1a45e9738de5b3e299bb51e987565dcce55fee6
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      perl git curl unzip ca-certificates ant maven \
+      perl git curl unzip ca-certificates ant ant-junit junit4 maven \
       openjdk-8-jdk-headless python3 python3-venv \
       libdbi-perl libdbd-csv-perl libjson-perl libjson-parse-perl \
       libperl-critic-perl libstring-interpolate-perl liburi-perl patch \
