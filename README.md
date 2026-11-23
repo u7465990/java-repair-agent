@@ -1,6 +1,7 @@
 # Java Repair Agent
 
 [![ci](https://github.com/u7465990/java-repair-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/u7465990/java-repair-agent/actions/workflows/ci.yml)
+[![d4j-smoke](https://github.com/u7465990/java-repair-agent/actions/workflows/d4j-smoke.yml/badge.svg)](https://github.com/u7465990/java-repair-agent/actions/workflows/d4j-smoke.yml)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
 
