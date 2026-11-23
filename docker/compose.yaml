@@ -1,0 +1,14 @@
+name: java-repair-agent
+
+services:
+  agent:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.app
+    image: java-repair-agent:0.1.0
+    volumes:
+      - ../work:/workspace
+    working_dir: /workspace
+    tty: true
+    stdin_open: true
+    entrypoint: ["bash"]

@@ -1,0 +1,97 @@
+# Java Repair Agent
+
+[![ci](https://github.com/u7465990/java-repair-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/u7465990/java-repair-agent/actions/workflows/ci.yml)
+[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
+
+An autonomous Java bug-fixing agent. The model decides what to read, search, change and test;
+a deterministic verification gate decides whether the bug is actually fixed.
+
+**Status: v0.1 bootstrap.** Sandbox, Defects4J adapter and baseline eval work; the LangGraph
+agent loop is the next milestone (see [roadmap](#roadmap)).
+
+## Why it looks like this
+
+- **Free agent, deterministic gate.** One ReAct agent calls tools freely; only `prepare`,
+  `verify` and `deliver` are fixed.
+- **Tools, skills, MCP.** 15+ tools (files, shell, JDT symbols, tests, git), on-demand
+  `SKILL.md` knowledge, and bidirectional MCP integration.
+- **Sandboxed execution.** Every command runs in Docker with a mounted worktree and no network.
+- **Evaluation first.** Defects4J provides the oracle: trigger tests (F2P) plus regression
+  tests (P2P). The agent never sees the fix commit.
+
+```mermaid
+flowchart LR
+  A[Agent: ReAct] --> T[Tools]
+  A --> S[Skills]
+  A --> M[MCP]
+  T --> B[Docker sandbox]
+  B --> R[(repo worktree)]
+  V[verify: rebuild + retest] --> D[deliver: patch + report]
+  A --> V
+```
+
+## Quickstart
+
+```bash
+uv sync
+uv run java-agent doctor
+uv run java-agent version
+```
+
+No Docker required for the unit tests:
+
+```bash
+uv run pytest -q
+uv run ruff check .
+```
+
+## Run one Defects4J bug
+
+Build the sandbox image once (JDK 8 + 11, Perl, Defects4J, warm repositories):
+
+```bash
+docker build -f docker/Dockerfile.d4j -t d4j-runner:2.0 .
+```
+
+Then checkout, compile and print the baseline failures:
+
+```bash
+uv run java-agent d4j smoke -p Lang -b 1
+```
+
+The checkout lands in `work/Lang-1/repo`; the container is removed afterwards.
+
+## Layout
+
+| Path | Purpose |
+|---|---|
+| `src/java_agent/sandbox/` | Local and Docker execution backends |
+| `src/java_agent/d4j.py` | Defects4J commands and output parsing |
+| `src/java_agent/eval/` | Case definition and baseline runner |
+| `src/java_agent/cli.py` | `java-agent` commands |
+| `docker/Dockerfile.d4j` | Sandbox image with Defects4J |
+| `docker/Dockerfile.app` | Self-contained release image |
+| `docs/architecture.md` | Design: graph, tools, skills, MCP, evaluation |
+| `tests/` | Unit tests (no Docker, no LLM) |
+
+## Roadmap
+
+- [x] Sandbox abstraction (local + Docker)
+- [x] Defects4J adapter and baseline runner
+- [x] CLI: `doctor`, `d4j smoke`
+- [ ] LangGraph lifecycle: prepare -> agent -> verify -> deliver
+- [ ] Tools: read/search/edit/bash/run_tests/java_symbols
+- [ ] SKILL.md loader + built-in skills
+- [ ] MCP client/server
+- [ ] Evaluation report over 10-20 bugs
+
+## Safety
+
+- Containers run with `--network none` and a single mounted workspace.
+- The agent cannot modify tests or build files; `verify` checks file hashes.
+- Do not run untrusted MCP servers or expose the API without additional isolation.
+
+## License
+
+MIT. See [LICENSE](LICENSE).

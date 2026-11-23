@@ -1,0 +1,29 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+dist/
+build/
+*.egg-info/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Runtime data: repositories, patches, reports, logs
+work/
+runs/
+artifacts/
+
+# Local notes (not published)
+notes/
+
+# Secrets
+.env
+.env.*
+*.pem
+
+# OS
+.DS_Store
+Thumbs.db

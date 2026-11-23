@@ -1,0 +1,22 @@
+# Sandbox image: JDK 8 + 11, Perl, Defects4J and warm project repositories.
+# Build once: docker build -f docker/Dockerfile.d4j -t d4j-runner:2.0 .
+FROM eclipse-temurin:11-jdk
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      perl git curl unzip ca-certificates python3 python3-venv \
+    && rm -rf /var/lib/apt/lists/*
+
+# Several Defects4J projects still build with JDK 8.
+COPY --from=eclipse-temurin:8-jdk /opt/java/openjdk /opt/jdk8
+ENV JAVA8_HOME=/opt/jdk8
+
+# Defects4J plus all project repositories (network needed at build time only).
+RUN git clone --depth 1 https://github.com/rjust/defects4j.git /opt/defects4j \
+    && cd /opt/defects4j && ./init.sh
+ENV PATH="/opt/defects4j/framework/bin:/opt/jdk8/bin:$PATH"
+
+# uv for running the agent inside the sandbox.
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:$PATH"
+
+WORKDIR /workspace
