@@ -6,12 +6,13 @@ FROM eclipse-temurin:11-jdk
 ARG D4J_REPO=https://github.com/rjust/defects4j.git
 ARG LANG_REPO=https://github.com/apache/commons-lang.git
 ARG LANG_BUGGY_SHA=396afc3e4693cfee182efe582455f2d97058c068
+ARG LANG_FIXED_SHA=d1a45e9738de5b3e299bb51e987565dcce55fee6
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
       perl git curl unzip ca-certificates ant maven \
       openjdk-8-jdk-headless python3 python3-venv \
       libdbi-perl libdbd-csv-perl libjson-perl libjson-parse-perl \
-      libperl-critic-perl libstring-interpolate-perl liburi-perl \
+      libperl-critic-perl libstring-interpolate-perl liburi-perl patch \
     && rm -rf /var/lib/apt/lists/*
 
 # Defects4J insists on Java 11 for its own checks, which is why java stays first
@@ -38,12 +39,15 @@ RUN mkdir -p /opt/defects4j/project_repos /opt/defects4j/major/bin \
          /opt/defects4j/framework/lib/build_systems/gradle/deps \
     && printf 'Defects4J version 3\n' > /opt/defects4j/project_repos/README
 
-# One shallow bare repository containing the buggy commit (~1 MB).
+# Defects4J checks out the *fixed* revision and reverses the fix patch to obtain
+# the buggy version, so the bare repository needs both commits (~2 MB).
 RUN git init --bare /opt/defects4j/project_repos/commons-lang.git \
     && git -C /opt/defects4j/project_repos/commons-lang.git fetch --depth 1 \
-         $LANG_REPO $LANG_BUGGY_SHA \
+         $LANG_REPO $LANG_FIXED_SHA $LANG_BUGGY_SHA \
     && git -C /opt/defects4j/project_repos/commons-lang.git update-ref \
-         refs/heads/master $LANG_BUGGY_SHA \
+         refs/heads/master $LANG_FIXED_SHA \
+    && git -C /opt/defects4j/project_repos/commons-lang.git update-ref \
+         refs/heads/buggy $LANG_BUGGY_SHA \
     && git -C /opt/defects4j/project_repos/commons-lang.git symbolic-ref \
          HEAD refs/heads/master
 
