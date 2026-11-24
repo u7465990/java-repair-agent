@@ -103,7 +103,7 @@ def run_repair(
         report = verify(sandbox, workdir, baseline.report.failing, baseline.trigger)
         history.append(report)
         if report.ok:
-            diff = sandbox.exec(["git", "-C", workdir, "--no-pager", "diff"]).stdout
+            diff = sandbox.exec(["git", "-C", workdir, "--no-pager", "diff", "HEAD"]).stdout
             return RepairOutcome(
                 True,
                 attempt,
@@ -115,7 +115,9 @@ def run_repair(
             )
 
         if trace_dir is not None:
-            diff = sandbox.exec(["git", "-C", workdir, "--no-pager", "diff"]).stdout
+            diff = sandbox.exec(
+                ["git", "-C", workdir, "--no-pager", "diff", "HEAD"]
+            ).stdout
             (trace_dir / f"attempt-{attempt}.diff").write_text(diff, encoding="utf-8")
         reset_workspace(sandbox, workdir)
 

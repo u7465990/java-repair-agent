@@ -15,6 +15,8 @@ Rules:
 - Read the failing test first, form a one-sentence hypothesis, then make the smallest fix.
 - Use run_tests to check your work; the suite is slow, so batch edits before running it.
 - Do not call finish before you have edited at least one source file.
+- Verification rejects changes outside src/main, any test/build file, more than
+  5 files, or more than 400 changed lines.
 - Call finish(summary) only when the target tests pass and you have not introduced regressions.
 - If a test fails after your change, inspect the failure instead of guessing.
 """
@@ -36,6 +38,9 @@ def user_prompt(
         previous_block = f"""
 Previous attempt failed verification:
 {previous.summary()}
+
+Previous test/compile output (tail):
+{previous.output[-1500:]}
 
 Diff so far:
 {previous.diff_stat or '(no diff)'}

@@ -27,6 +27,10 @@ class RepairSandbox:
             return ExecResult(1 if failing else 0, body, "")
         if "defects4j export" in command:
             return ExecResult(0, "org.example.FooTest::bar\n", "")
+        if "status" in command:
+            return ExecResult(0, " M src/main/java/Foo.java\n", "")
+        if "--numstat" in command:
+            return ExecResult(0, "10\t2\tsrc/main/java/Foo.java\n", "")
         if "diff" in command:
             return ExecResult(0, "diff --git a/Foo.java b/Foo.java\n", "")
         return ExecResult(0, "", "")
