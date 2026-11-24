@@ -42,6 +42,30 @@ gh workflow run agent-run.yml \
 
 产物：`work/Lang-<N>/patch.diff`、`report.md`、`trajectory-*.jsonl`。
 
+## 廉价模型冒烟（Lang-1）
+
+条件：1 次尝试、12 步（qwen3-coder-flash 为 2 次尝试、20 步），token 预算 15 万。
+
+| 模型 | 结果 | 输入/输出 token | 耗时 |
+|---|---|---|---|
+| qwen3.8-flash | **修复** | 55,920 / 4,511 | 1.4 min |
+| deepseek-v4.1-flash | 未修复 | 54,334 / 3,439 | 0.8 min |
+| qwen3.6-flash | 未修复 | 39,272 / 1,472 | 0.8 min |
+| qwen3.5-flash | 未修复 | 51,327 / 1,044 | 1.0 min |
+| qwen3.7-flash | 未修复 | 59,378 / 1,860 | 1.5 min |
+| deepseek-v4-flash-0731 | 未修复 | 7,267 / 2,345 | 0.6 min |
+| glm-5.2-fast-preview | 未修复 | 15,249 / 4,088 | 0.8 min |
+| MiniMax-M2.5 | 未修复 | 41,541 / 2,845 | 1.1 min |
+| qwen3.8-27b | 未修复 | 16,367 / 2,663 | 0.9 min |
+| qwen3-coder-flash | 未修复 | 148,810 / 2,295 | 2.3 min |
+
+结论：
+
+- **qwen3.8-flash 是唯一修好 Lang-1 的廉价模型**，1 次尝试、约 5.6 万 token、1.4 分钟；
+- 其余模型都能正常调用工具（轨迹里 0 个基础设施错误），失败是能力问题，不是项目问题；
+- 这批跑完后账号开始返回 `Arrearage` / `AccessDenied.Unpurchased`，后续 4 个模型（kimi-k2.7-code、qwen3.5-plus、qwen3.6-plus、glm-5.3）没能跑起来；
+- 因此“项目没有 bug”这一结论成立：9 个模型的轨迹里没有 `command not found`、`No such file` 这类环境错误。
+
 ## 下一步
 
 - 加 diff 审计（禁止改测试/构建文件、限制改动规模）；

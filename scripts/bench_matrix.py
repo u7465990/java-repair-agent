@@ -8,25 +8,29 @@ import re
 import subprocess
 from pathlib import Path
 
-TOKENS = re.compile(r"tokens: input (\d+), output (\d+), total (\d+)")
-DURATION = re.compile(r"duration: ([\d.]+) min")
+TOKENS = re.compile(r"tokens: in (\d+) / out (\d+) \| ([\d.]+) min")
+ERROR_MARKERS = ("Error code:", "Access denied", "Unpurchased", "Arrearage")
 
 
 def parse_list(text: str) -> list[str]:
     return [item.strip() for item in text.split(",") if item.strip()]
 
 
-def read_report(path: Path) -> tuple[int, int, float]:
-    if not path.exists():
-        return 0, 0, 0.0
-    text = path.read_text(encoding="utf-8", errors="replace")
-    tokens = TOKENS.search(text)
-    duration = DURATION.search(text)
-    return (
-        int(tokens.group(1)) if tokens else 0,
-        int(tokens.group(2)) if tokens else 0,
-        float(duration.group(1)) if duration else 0.0,
-    )
+def read_usage(log: str, report: Path) -> tuple[int, int, float]:
+    match = TOKENS.search(log)
+    if match:
+        return int(match.group(1)), int(match.group(2)), float(match.group(3))
+    if report.exists():
+        text = report.read_text(encoding="utf-8", errors="replace")
+        tokens = re.search(r"input (\d+), output (\d+)", text)
+        duration = re.search(r"duration: ([\d.]+) min", text)
+        if tokens:
+            return (
+                int(tokens.group(1)),
+                int(tokens.group(2)),
+                float(duration.group(1)) if duration else 0.0,
+            )
+    return 0, 0, 0.0
 
 
 def main() -> int:
@@ -44,6 +48,9 @@ def main() -> int:
 
     for model in parse_list(args.models):
         for bug in parse_list(args.bugs):
+            report = Path("work") / f"Lang-{bug}" / "report.md"
+            report.unlink(missing_ok=True)
+
             command = [
                 "uv",
                 "run",
@@ -65,14 +72,18 @@ def main() -> int:
             slug = model.replace("/", "_").replace(":", "_")
             (out / f"{slug}-Lang-{bug}.log").write_text(log, encoding="utf-8")
 
-            report = Path("work") / f"Lang-{bug}" / "report.md"
-            input_tokens, output_tokens, minutes = read_report(report)
-            fixed = "fixed in" in log and "not fixed" not in log
+            input_tokens, output_tokens, minutes = read_usage(log, report)
+            if result.returncode != 0 or any(marker in log for marker in ERROR_MARKERS):
+                status = "error"
+            elif "fixed in" in log and "not fixed" not in log:
+                status = "fixed"
+            else:
+                status = "failed"
             rows.append(
                 {
                     "model": model,
                     "bug": bug,
-                    "result": "fixed" if fixed else "failed",
+                    "result": status,
                     "input_tokens": input_tokens,
                     "output_tokens": output_tokens,
                     "minutes": minutes,
