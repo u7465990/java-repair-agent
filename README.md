@@ -8,8 +8,9 @@
 An autonomous Java bug-fixing agent. The model decides what to read, search, change and test;
 a deterministic verification gate decides whether the bug is actually fixed.
 
-**Status: v0.1 bootstrap.** Sandbox, Defects4J adapter and baseline eval work; the LangGraph
-agent loop is the next milestone (see [roadmap](#roadmap)).
+**Status: v0.2.** Sandbox, Defects4J adapter, a LangGraph ReAct agent with sandboxed
+tools, and independent verification work. Durable lifecycle graph, skills and MCP are next
+(see [roadmap](#roadmap)).
 
 ## Why it looks like this
 
@@ -114,8 +115,10 @@ Artifacts land in `work/Lang-1/`: `patch.diff`, `verify.log`, `baseline-test.log
 - [x] Sandbox abstraction (local + Docker)
 - [x] Defects4J adapter and baseline runner
 - [x] CLI: `doctor`, `d4j smoke`
-- [ ] LangGraph lifecycle: prepare -> agent -> verify -> deliver
-- [ ] Tools: read/search/edit/bash/run_tests/java_symbols
+- [x] LangGraph ReAct agent with tool calling
+- [x] Tools: read / write / edit / search / bash / run_tests / git_diff
+- [x] Independent verification against the baseline failure set
+- [ ] Durable lifecycle graph (checkpointer, interrupts)
 - [ ] SKILL.md loader + built-in skills
 - [ ] MCP client/server
 - [ ] Evaluation report over 10-20 bugs

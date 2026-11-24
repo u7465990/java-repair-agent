@@ -1,40 +1,8 @@
-from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, ToolMessage
-from langchain_core.outputs import ChatGeneration, ChatResult
-from pydantic import PrivateAttr
+from fakes import FakeSandbox, ScriptedChatModel
+from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
 from java_agent.agent.react import build_react_agent
-from java_agent.sandbox.base import ExecResult
 from java_agent.tools import ToolContext, build_tools
-
-
-class ScriptedChatModel(BaseChatModel):
-    responses: list[AIMessage]
-    _index: int = PrivateAttr(default=0)
-
-    def _generate(self, messages: list[BaseMessage], stop=None, run_manager=None, **kwargs):
-        index = min(self._index, len(self.responses) - 1)
-        self._index += 1
-        return ChatResult(generations=[ChatGeneration(message=self.responses[index])])
-
-    @property
-    def _llm_type(self) -> str:
-        return "scripted"
-
-    def bind_tools(self, tools, **kwargs):
-        return self
-
-
-class FakeSandbox:
-    def __init__(self) -> None:
-        self.calls: list[list[str]] = []
-
-    def exec(self, args, cwd=None, timeout=600) -> ExecResult:
-        self.calls.append(list(args))
-        return ExecResult(0, "1\tclass X {}", "")
-
-    def close(self) -> None:
-        return None
 
 
 def _call(name: str, args: dict, call_id: str) -> AIMessage:
