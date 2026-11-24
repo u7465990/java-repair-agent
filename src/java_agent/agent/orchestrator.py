@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -77,7 +78,13 @@ def run_repair(
     started = time.perf_counter()
     for attempt in range(1, max_attempts + 1):
         tools = build_tools(ToolContext(sandbox=sandbox, workdir=workdir))
-        agent = build_react_agent(model, tools, system_prompt(workdir), max_steps=max_steps)
+        agent = build_react_agent(
+            model,
+            tools,
+            system_prompt(workdir),
+            max_steps=max_steps,
+            keep_messages=int(os.getenv("JAVA_AGENT_HISTORY", "12")),
+        )
         result = agent.invoke(
             {
                 "messages": [
