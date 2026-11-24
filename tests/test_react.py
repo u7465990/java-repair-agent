@@ -34,7 +34,9 @@ def test_compact_never_starts_with_orphaned_tool_result() -> None:
         HumanMessage(content="start"),
         AIMessage(
             content="",
-            tool_calls=[{"name": "read_file", "args": {"path": "x"}, "id": "c1", "type": "tool_call"}],
+            tool_calls=[
+                {"name": "read_file", "args": {"path": "x"}, "id": "c1", "type": "tool_call"}
+            ],
         ),
         ToolMessage(content="file", tool_call_id="c1"),
         HumanMessage(content="next"),
