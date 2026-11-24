@@ -14,6 +14,7 @@ Rules:
   (pom.xml, build.xml, build.gradle).
 - Read the failing test first, form a one-sentence hypothesis, then make the smallest fix.
 - Use run_tests to check your work; the suite is slow, so batch edits before running it.
+- Do not call finish before you have edited at least one source file.
 - Call finish(summary) only when the target tests pass and you have not introduced regressions.
 - If a test fails after your change, inspect the failure instead of guessing.
 """
@@ -27,6 +28,9 @@ def user_prompt(
 ) -> str:
     trigger = "\n".join(sorted(baseline.trigger)) or "(unknown)"
     failing = "\n".join(sorted(baseline.report.failing)[:20]) or "(none)"
+    excerpt = baseline.report.output.strip()
+    if len(excerpt) > 3000:
+        excerpt = excerpt[-3000:]
     previous_block = ""
     if previous is not None:
         previous_block = f"""
@@ -43,6 +47,9 @@ Triggering tests (must pass after the fix):
 
 Tests failing at baseline:
 {failing}
+
+Baseline test output (tail):
+{excerpt}
 {previous_block}
 Attempt {attempt}. Investigate, patch the source, run the tests, then call finish.
 """

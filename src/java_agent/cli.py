@@ -171,6 +171,7 @@ def run(
                 chat,
                 max_attempts=attempts,
                 max_steps=max_steps,
+                trace_dir=case_dir,
             )
     except Exception as exc:  # noqa: BLE001 - surface a readable message in the CLI
         console.print(f"[red]{exc}[/red]")
