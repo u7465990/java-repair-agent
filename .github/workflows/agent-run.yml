@@ -1,0 +1,67 @@
+name: agent-run
+
+on:
+  workflow_dispatch:
+    inputs:
+      project:
+        description: Defects4J project id
+        default: Lang
+      bug:
+        description: Bug number
+        default: "1"
+      model:
+        description: LangChain model spec
+        default: "openai:qwen-flash"
+      attempts:
+        description: Agent attempts
+        default: "2"
+      max_steps:
+        description: Tool calls per attempt
+        default: "30"
+
+permissions:
+  contents: read
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      JAVA_AGENT_BASE_URL: https://dashscope.aliyuncs.com/compatible-mode/v1
+      JAVA_AGENT_TEMPERATURE: "0.1"
+      JAVA_AGENT_MAX_TOKENS: "2048"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build sandbox image
+        run: docker build -f docker/Dockerfile.d4j -t d4j-runner:2.0 .
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install project
+        run: uv sync --frozen
+
+      - name: Run agent
+        env:
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+        run: |
+          uv run java-agent run \
+            -p ${{ inputs.project }} \
+            -b ${{ inputs.bug }} \
+            --model "${{ inputs.model }}" \
+            --attempts ${{ inputs.attempts }} \
+            --max-steps ${{ inputs.max_steps }}
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: repair-${{ inputs.project }}-${{ inputs.bug }}
+          path: |
+            work/**/patch.diff
+            work/**/verify.log
+            work/**/baseline-test.log
+            work/**/compile.log
+          if-no-files-found: warn
