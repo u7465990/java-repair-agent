@@ -99,9 +99,15 @@ Artifacts land in `work/Lang-1/`: `patch.diff`, `verify.log`, `baseline-test.log
 
 ## Results
 
-| Bug | Model | Attempts | Outcome |
-|---|---|---|---|
-| Lang-1 | `qwen-plus` (DashScope compatible API) | 2 | trigger passes, no new failures, 11 min |
+| Bug | Result | Attempts | Input tokens | Time |
+|---|---|---|---|---|
+| Lang-1 | fixed | 2 | n/a | 11.6 min |
+| Lang-3 | not fixed | 2 | 230,355 | 8.8 min |
+| Lang-4 | fixed | 1 | 126,940 | 3.8 min |
+| Lang-5 | fixed | 2 | 238,530 | 8.2 min |
+| Lang-6 | not fixed | 2 | 188,847 | 6.0 min |
+
+Fix rate **3/5**. Full table and observations: [docs/results.md](docs/results.md).
 
 The first attempt patched `NumberUtils.createNumber` with a try/catch fallback and failed
 verification; the second attempt replaced the hex-digit heuristic with a `BigInteger`
