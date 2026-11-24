@@ -141,6 +141,7 @@ requirements are documented in [docs/models.md](docs/models.md).
 | `docker/Dockerfile.app` | Self-contained release image |
 | `docs/architecture.md` | Design: graph, tools, skills, MCP, evaluation |
 | `docs/devlog.md` | Development log: decisions, D4J debugging, first repair |
+| `scripts/collect_results.py` | Merge `report.md` / `summary.csv` into one table |
 | `tests/` | Unit tests (no Docker, no LLM) |
 
 ## Roadmap
