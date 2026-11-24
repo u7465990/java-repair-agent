@@ -114,9 +114,24 @@ def smoke(
         console.print(f"[dim]{tail}[/dim]")
 
 def _load_model(spec: str):
+    """Build a chat model, honouring OpenAI-compatible endpoints from env."""
+    import os
+
     from langchain.chat_models import init_chat_model
 
-    return init_chat_model(spec, temperature=0)
+    if ":" not in spec:
+        spec = f"openai:{spec}"
+    kwargs = {
+        "temperature": float(os.getenv("JAVA_AGENT_TEMPERATURE", "0.1")),
+        "max_tokens": int(os.getenv("JAVA_AGENT_MAX_TOKENS", "4096")),
+    }
+    base_url = os.getenv("JAVA_AGENT_BASE_URL") or os.getenv("LLM_BASE_URL")
+    api_key = os.getenv("JAVA_AGENT_API_KEY") or os.getenv("LLM_API_KEY")
+    if base_url:
+        kwargs["base_url"] = base_url
+    if api_key:
+        kwargs["api_key"] = api_key
+    return init_chat_model(spec, **kwargs)
 
 
 @app.command()
