@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -14,6 +15,7 @@ from java_agent.agent.react import build_react_agent
 from java_agent.eval.runner import Case, run_baseline
 from java_agent.sandbox.base import Sandbox
 from java_agent.tools import ToolContext, build_tools
+from java_agent.usage import Usage, usage_from_messages
 from java_agent.verify import VerifyReport, verify
 
 
@@ -26,6 +28,8 @@ class RepairOutcome:
     patch: str = ""
     last: VerifyReport | None = None
     history: list[VerifyReport] = field(default_factory=list)
+    usage: Usage = field(default_factory=Usage)
+    duration_s: float = 0.0
 
 
 def reset_workspace(sandbox: Sandbox, workdir: str) -> None:
@@ -69,6 +73,8 @@ def run_repair(
         raise RuntimeError(f"baseline for {case.key} does not compile")
 
     history: list[VerifyReport] = []
+    usage = Usage()
+    started = time.perf_counter()
     for attempt in range(1, max_attempts + 1):
         tools = build_tools(ToolContext(sandbox=sandbox, workdir=workdir))
         agent = build_react_agent(model, tools, system_prompt(workdir), max_steps=max_steps)
@@ -82,6 +88,7 @@ def run_repair(
             },
             config={"recursion_limit": max_steps * 4 + 10},
         )
+        usage.add(usage_from_messages(result["messages"]))
         if trace_dir is not None:
             _write_trajectory(trace_dir, attempt, result["messages"])
 
@@ -89,11 +96,27 @@ def run_repair(
         history.append(report)
         if report.ok:
             diff = sandbox.exec(["git", "-C", workdir, "--no-pager", "diff"]).stdout
-            return RepairOutcome(True, attempt, diff, report, history)
+            return RepairOutcome(
+                True,
+                attempt,
+                diff,
+                report,
+                history,
+                usage,
+                time.perf_counter() - started,
+            )
 
         if trace_dir is not None:
             diff = sandbox.exec(["git", "-C", workdir, "--no-pager", "diff"]).stdout
             (trace_dir / f"attempt-{attempt}.diff").write_text(diff, encoding="utf-8")
         reset_workspace(sandbox, workdir)
 
-    return RepairOutcome(False, max_attempts, "", history[-1] if history else None, history)
+    return RepairOutcome(
+        False,
+        max_attempts,
+        "",
+        history[-1] if history else None,
+        history,
+        usage,
+        time.perf_counter() - started,
+    )

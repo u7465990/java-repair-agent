@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import platform
 import shutil
 import subprocess
@@ -181,11 +182,34 @@ def run(
     if outcome.last is not None:
         (case_dir / "verify.log").write_text(outcome.last.output, encoding="utf-8")
 
+    price_in = float(os.getenv("JAVA_AGENT_PRICE_IN", "0") or 0)
+    price_out = float(os.getenv("JAVA_AGENT_PRICE_OUT", "0") or 0)
+    cost = outcome.usage.cost_usd(price_in, price_out)
+    minutes = outcome.duration_s / 60
+
+    report_lines = [
+        f"# {project}-{bug} repair report",
+        "",
+        f"- model: {model}",
+        f"- result: {'fixed' if outcome.fixed else 'not fixed'}",
+        f"- attempts: {outcome.attempts}",
+        f"- duration: {minutes:.1f} min",
+        f"- tokens: input {outcome.usage.input_tokens}, output {outcome.usage.output_tokens}, "
+        f"total {outcome.usage.total_tokens}",
+        f"- estimated cost: {cost:.4f} USD",
+        f"- verify: {outcome.last.summary() if outcome.last else 'n/a'}",
+    ]
+    (case_dir / "report.md").write_text("\n".join(report_lines) + "\n", encoding="utf-8")
+
     if outcome.fixed:
         console.print(f"[green]fixed in {outcome.attempts} attempt(s)[/green]")
     else:
         console.print(f"[red]not fixed after {outcome.attempts} attempt(s)[/red]")
     if outcome.last is not None:
         console.print(outcome.last.summary())
+    console.print(
+        f"tokens: in {outcome.usage.input_tokens} / out {outcome.usage.output_tokens} "
+        f"| {minutes:.1f} min | cost {cost:.4f} USD"
+    )
     console.print(f"patch: {case_dir / 'patch.diff'}")
 
