@@ -14,6 +14,10 @@ IGNORED_PREFIXES = (
     "build/",
     "out/",
     ".gradle/",
+    "all_tests",
+    "failing_tests",
+    ".defects4j.config",
+    "defects4j.build.properties",
 )
 FORBIDDEN_NAMES = {
     "pom.xml",

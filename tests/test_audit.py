@@ -61,6 +61,15 @@ def test_build_output_is_ignored() -> None:
     assert audit.ok
 
 
+def test_defects4j_report_files_are_ignored() -> None:
+    sandbox = AuditSandbox(
+        "?? all_tests\n?? failing_tests\n M src/main/java/Foo.java\n",
+        "4\t2\tsrc/main/java/Foo.java\n",
+    )
+    audit = audit_workspace(sandbox, "/workspace/repo")
+    assert audit.ok
+
+
 def test_empty_change_is_rejected() -> None:
     audit = audit_workspace(AuditSandbox("", ""), "/workspace/repo")
     assert any("no source changes" in v for v in audit.violations)
