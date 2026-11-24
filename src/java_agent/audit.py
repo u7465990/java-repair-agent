@@ -7,7 +7,14 @@ from dataclasses import dataclass, field
 from java_agent.sandbox.base import Sandbox
 
 ALLOWED_PREFIXES = ("src/main/",)
-IGNORED_PREFIXES = ("scratch/", ".agent/")
+IGNORED_PREFIXES = (
+    "scratch/",
+    ".agent/",
+    "target/",
+    "build/",
+    "out/",
+    ".gradle/",
+)
 FORBIDDEN_NAMES = {
     "pom.xml",
     "build.xml",

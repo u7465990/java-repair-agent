@@ -52,6 +52,15 @@ def test_untracked_file_outside_src_is_rejected() -> None:
     assert any("outside src/main" in v for v in audit.violations)
 
 
+def test_build_output_is_ignored() -> None:
+    sandbox = AuditSandbox(
+        "?? target/classes/Foo.class\n M src/main/java/Foo.java\n",
+        "2\t1\tsrc/main/java/Foo.java\n",
+    )
+    audit = audit_workspace(sandbox, "/workspace/repo")
+    assert audit.ok
+
+
 def test_empty_change_is_rejected() -> None:
     audit = audit_workspace(AuditSandbox("", ""), "/workspace/repo")
     assert any("no source changes" in v for v in audit.violations)
