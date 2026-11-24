@@ -1,0 +1,60 @@
+name: bench-matrix
+
+on:
+  workflow_dispatch:
+    inputs:
+      models:
+        description: Comma separated model specs
+        default: "openai:qwen3.8-max"
+      bugs:
+        description: Comma separated bug numbers
+        default: "1,3,4,5,6"
+      attempts:
+        default: "2"
+      max_steps:
+        default: "25"
+
+permissions:
+  contents: read
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    env:
+      JAVA_AGENT_BASE_URL: https://dashscope.aliyuncs.com/compatible-mode/v1
+      JAVA_AGENT_TEMPERATURE: "0.1"
+      JAVA_AGENT_MAX_TOKENS: "4096"
+      JAVA_AGENT_HISTORY: "12"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build sandbox image
+        run: docker build -f docker/Dockerfile.d4j -t d4j-runner:2.0 .
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install project
+        run: uv sync --frozen
+
+      - name: Run matrix
+        env:
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+        run: |
+          uv run python scripts/bench_matrix.py \
+            --models "${{ inputs.models }}" \
+            --bugs "${{ inputs.bugs }}" \
+            --attempts ${{ inputs.attempts }} \
+            --max-steps ${{ inputs.max_steps }}
+
+      - name: Upload summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bench-summary
+          path: |
+            bench/**
+            work/**
+          if-no-files-found: warn

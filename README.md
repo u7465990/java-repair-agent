@@ -118,6 +118,12 @@ was the smallest model that worked.
 Run it yourself with the `agent-run` workflow (`workflow_dispatch`, model
 `openai:qwen-plus`), or locally after building the sandbox image.
 
+## Benchmarking models
+
+`scripts/bench_matrix.py` runs a model × bug matrix and writes `bench/summary.md`;
+the `bench-matrix` workflow does the same in CI. Model selection and account
+requirements are documented in [docs/models.md](docs/models.md).
+
 ## Layout
 
 | Path | Purpose |
