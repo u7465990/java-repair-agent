@@ -81,6 +81,21 @@ locale-dependent and exist independently of the bug: this is exactly why
 verification compares against the baseline failing set instead of requiring an
 all-green suite.
 
+## Let the agent fix it
+
+```bash
+uv add langchain-anthropic        # or langchain-openai / langchain-deepseek
+export ANTHROPIC_API_KEY=...
+export JAVA_AGENT_MODEL=anthropic:claude-sonnet-4-5
+
+uv run java-agent run -p Lang -b 1
+```
+
+The agent gets read/search/edit/bash/test tools and works inside the sandbox.
+After every attempt an independent verification step rebuilds and retests the
+repository, compares failures against the baseline, and feeds the report back.
+Artifacts land in `work/Lang-1/`: `patch.diff`, `verify.log`, `baseline-test.log`.
+
 ## Layout
 
 | Path | Purpose |

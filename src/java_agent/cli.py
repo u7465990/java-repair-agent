@@ -13,6 +13,7 @@ from rich.console import Console
 from rich.table import Table
 
 from java_agent import __version__
+from java_agent.agent.orchestrator import run_repair
 from java_agent.eval.runner import Case, run_baseline
 from java_agent.sandbox.docker import DockerSandbox
 
@@ -111,3 +112,64 @@ def smoke(
         console.print("[yellow]No failing tests at baseline; check the bug id.[/yellow]")
         tail = "\n".join(result.report.output.splitlines()[-15:])
         console.print(f"[dim]{tail}[/dim]")
+
+def _load_model(spec: str):
+    from langchain.chat_models import init_chat_model
+
+    return init_chat_model(spec, temperature=0)
+
+
+@app.command()
+def run(
+    project: Annotated[str, typer.Option("--project", "-p", help="Defects4J project id.")] = "Lang",
+    bug: Annotated[int, typer.Option("--bug", "-b", help="Bug number.")] = 1,
+    model: Annotated[
+        str,
+        typer.Option("--model", envvar="JAVA_AGENT_MODEL", help="LangChain model spec."),
+    ] = "",
+    attempts: Annotated[int, typer.Option("--attempts", help="Agent attempts.")] = 3,
+    max_steps: Annotated[int, typer.Option("--max-steps", help="Tool calls per attempt.")] = 40,
+    workdir: Annotated[Path, typer.Option("--workdir", help="Host directory.")] = DEFAULT_WORKDIR,
+    image: Annotated[str, typer.Option("--image", help="Sandbox image.")] = DEFAULT_IMAGE,
+) -> None:
+    """Let the agent fix one bug, then verify the result independently."""
+    if not model:
+        console.print("[red]--model is required[/red] (or set JAVA_AGENT_MODEL).")
+        raise typer.Exit(code=1)
+    if not _docker_ready():
+        console.print("[red]Docker is not available.[/red] Start Docker Desktop and retry.")
+        raise typer.Exit(code=1)
+
+    case_dir = (workdir / f"{project}-{bug}").resolve()
+    case_dir.mkdir(parents=True, exist_ok=True)
+    sandbox = DockerSandbox(
+        image=image,
+        host_dir=case_dir,
+        name=f"java-agent-{project}-{bug}".lower(),
+    )
+    try:
+        with sandbox:
+            chat = _load_model(model)
+            outcome = run_repair(
+                sandbox,
+                Case(project, bug),
+                chat,
+                max_attempts=attempts,
+                max_steps=max_steps,
+            )
+    except Exception as exc:  # noqa: BLE001 - surface a readable message in the CLI
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=1) from exc
+
+    (case_dir / "patch.diff").write_text(outcome.patch, encoding="utf-8")
+    if outcome.last is not None:
+        (case_dir / "verify.log").write_text(outcome.last.output, encoding="utf-8")
+
+    if outcome.fixed:
+        console.print(f"[green]fixed in {outcome.attempts} attempt(s)[/green]")
+    else:
+        console.print(f"[red]not fixed after {outcome.attempts} attempt(s)[/red]")
+    if outcome.last is not None:
+        console.print(outcome.last.summary())
+    console.print(f"patch: {case_dir / 'patch.diff'}")
+
