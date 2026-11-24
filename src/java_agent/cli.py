@@ -197,6 +197,7 @@ def run(
         f"- tokens: input {outcome.usage.input_tokens}, output {outcome.usage.output_tokens}, "
         f"total {outcome.usage.total_tokens}",
         f"- estimated cost: {cost:.4f} USD",
+        f"- failure kind: {outcome.last.kind if outcome.last else 'n/a'}",
         f"- verify: {outcome.last.summary() if outcome.last else 'n/a'}",
     ]
     (case_dir / "report.md").write_text("\n".join(report_lines) + "\n", encoding="utf-8")

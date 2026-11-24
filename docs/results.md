@@ -84,6 +84,13 @@ gh workflow run agent-run.yml \
 - 三个模型的失败都集中在 Lang-3（数值精度）和 Lang-6（代理对转义），说明瓶颈在语义而非工具链；
 - 所有轨迹都没有基础设施错误，项目本身稳定。
 
+## 审计与失败分类（2026-11-24 晚）
+
+- Lang-4 用 qwen3.8-flash 在 2 次尝试内修复，`audit_ok=True`：改动都在 `src/main`，未碰测试与构建文件；
+- `VerifyReport` 增加 `kind` 字段，取值：`passed` / `no_changes` / `audit_violation` /
+  `compile_error` / `trigger_failing` / `new_failure`；`report.md` 会记录；
+- 编译失败时不再继续跑测试，直接把编译错误回灌给下一轮，省一次全量测试。
+
 ## 下一步
 
 - 加 diff 审计（禁止改测试/构建文件、限制改动规模）；

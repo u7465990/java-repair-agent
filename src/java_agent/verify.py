@@ -21,6 +21,7 @@ class VerifyReport:
     output: str = ""
     diff_stat: str = ""
     audit: DiffAudit = field(default_factory=lambda: DiffAudit(ok=True))
+    kind: str = "unknown"
 
     def summary(self) -> str:
         lines = [
@@ -28,6 +29,7 @@ class VerifyReport:
             f"failing={len(self.failing)}",
             f"new_failures={sorted(self.new_failures)}",
             f"trigger_failing={sorted(self.failing & self.trigger)}",
+            f"kind={self.kind}",
             f"audit_ok={self.audit.ok}",
         ]
         if self.audit.violations:
@@ -64,6 +66,19 @@ def verify(
         and audit.ok
     )
 
+    if "no source changes" in audit.violations:
+        kind = "no_changes"
+    elif not audit.ok:
+        kind = "audit_violation"
+    elif not compile_result.ok:
+        kind = "compile_error"
+    elif trigger_failing:
+        kind = "trigger_failing"
+    elif new_failures:
+        kind = "new_failure"
+    else:
+        kind = "passed"
+
     diff = sandbox.exec(["git", "-C", workdir, "--no-pager", "diff", "HEAD", "--stat"])
     return VerifyReport(
         ok=ok,
@@ -74,4 +89,5 @@ def verify(
         output=output,
         diff_stat=diff.output.strip(),
         audit=audit,
+        kind=kind,
     )
