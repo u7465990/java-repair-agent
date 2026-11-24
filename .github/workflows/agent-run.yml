@@ -66,4 +66,5 @@ jobs:
             work/**/compile.log
             work/**/trajectory-*.jsonl
             work/**/attempt-*.diff
+            work/**/report.md
           if-no-files-found: warn
