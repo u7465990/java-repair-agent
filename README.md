@@ -107,7 +107,9 @@ Artifacts land in `work/Lang-1/`: `patch.diff`, `verify.log`, `baseline-test.log
 | Lang-5 | fixed | 2 | 238,530 | 8.2 min |
 | Lang-6 | not fixed | 2 | 188,847 | 6.0 min |
 
-Fix rate **3/5**. Full table and observations: [docs/results.md](docs/results.md).
+Fix rate **3/5** with qwen-plus. Free models reach **2/5**: qwen3.8-flash and
+kimi-k3 each fix Lang-4 and Lang-5 at roughly a tenth of the cost.
+Full tables and observations: [docs/results.md](docs/results.md).
 
 The first attempt patched `NumberUtils.createNumber` with a try/catch fallback and failed
 verification; the second attempt replaced the hex-digit heuristic with a `BigInteger`

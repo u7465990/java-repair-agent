@@ -66,6 +66,24 @@ gh workflow run agent-run.yml \
 - 这批跑完后账号开始返回 `Arrearage` / `AccessDenied.Unpurchased`，后续 4 个模型（kimi-k2.7-code、qwen3.5-plus、qwen3.6-plus、glm-5.3）没能跑起来；
 - 因此“项目没有 bug”这一结论成立：9 个模型的轨迹里没有 `command not found`、`No such file` 这类环境错误。
 
+## 免费模型 5-bug 对比
+
+条件：2 次尝试、20 步，token 预算 15 万/次。
+
+| 模型 | 修复数 | 修复的 bug | 输入 token | 总耗时 |
+|---|---|---|---|---|
+| qwen-plus | 3/5 | 1, 4, 5 | 约 78.5 万（不含 Lang-1） | 约 32 min |
+| qwen3.8-flash | 2/5 | 4, 5 | 约 52.5 万 | 约 13 min |
+| kimi-k3（temperature=1.0） | 2/5 | 4, 5 | 约 40.4 万 | 约 20 min |
+
+观察：
+
+- 免费模型能到 **2/5**，和 qwen-plus 的 3/5 只差一个 bug，成本却低一个量级；
+- **qwen3.8-flash 有随机性**：单次冒烟修好过 Lang-1，5-bug 跑时又失败；1 次尝试的结论不可靠；
+- **kimi-k3 不接受 temperature=0.1**，必须显式传 1.0，否则直接 400；
+- 三个模型的失败都集中在 Lang-3（数值精度）和 Lang-6（代理对转义），说明瓶颈在语义而非工具链；
+- 所有轨迹都没有基础设施错误，项目本身稳定。
+
 ## 下一步
 
 - 加 diff 审计（禁止改测试/构建文件、限制改动规模）；
