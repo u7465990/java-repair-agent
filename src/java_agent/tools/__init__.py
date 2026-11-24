@@ -30,7 +30,7 @@ def _resolve(ctx: ToolContext, path: str) -> str:
 
 
 def _run(ctx: ToolContext, argv: list[str], timeout: int = 600) -> str:
-    result = ctx.sandbox.exec(argv, timeout=timeout)
+    result = ctx.sandbox.exec(argv, cwd=ctx.workdir, timeout=timeout)
     output = result.output.strip()
     if not result.ok:
         return f"ERROR (exit {result.exit_code}):\n{output[-8000:]}"
