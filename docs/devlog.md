@@ -67,7 +67,7 @@
 ## 3. 选型：为什么是 Python + LangGraph
 
 - **LangGraph**：需要持久化、中断审批、崩溃恢复、时间旅行；这些自己写容易做错。图只编排生命周期，Agent 内部仍是自由循环。
-- **LangChain 工具层**：`@tool` + 原生 function calling，后面接 MCP 时工具同构。
+- **LangChain 工具层**：```tool` + 原生 function calling，后面接 MCP 时工具同构。
 - **Python 而不是 TypeScript**：框架首发在 Python；评测与数据分析在 Python；Java 工具链走子进程/LSP/MCP，不需要 JVM 内嵌。
 - **Docker 沙箱**：Agent 会执行任意命令，必须隔离；镜像同时装 JDK 8/11、Ant、Maven、Perl、D4J。
 - **uv**：Python 依赖与锁文件，CI 用 `uv sync --frozen` 保证一致。
@@ -139,14 +139,14 @@ CI 在这里不是"交付门禁"，而是**唯一能跑通 Linux + Docker 的调
 
 ### 5.1 结构
 
-`@text
+```text
 CLI run
   └─ run_repair
        ├─ run_baseline        checkout + compile + test + export trigger
        ├─ build_react_agent   LangGraph: agent ⇄ tools
        ├─ verify              compile + test + 对比 baseline
        └─ reset / retry       失败回滚，带报告重来
-`@
+```
 
 ### 5.2 工具
 
@@ -177,13 +177,13 @@ CLI run
 
 现象：
 
-`@text
+```text
 not fixed after 2 attempt(s)
 compile_ok=True
 failing=3
 trigger_failing=[...TestLang747]
 patch.diff  0 字节
-`@
+```
 
 **没有补丁**说明模型从头到尾没改过文件。
 
@@ -210,13 +210,13 @@ patch.diff  0 字节
 qwen-plus 第 1 次尝试：在 hex 分支里加 `try/catch` 回退，验证失败。
 第 2 次尝试：用 `BigInteger.bitLength()` 判断范围，通过。
 
-`@text
+```text
 fixed in 2 attempt(s)
 compile_ok=True
 failing=2
 new_failures=[]
 trigger_failing=[]
-`@
+```
 
 补丁只改了 `NumberUtils.java`，没有动测试与构建文件。耗时 11 分 38 秒。
 
@@ -256,7 +256,7 @@ trigger_failing=[]
 
 ## 9. 当前架构
 
-`@text
+```text
 Windows / CLI
    │
    ├─ LangGraph ReAct Agent（qwen-plus via DashScope）
@@ -266,7 +266,7 @@ Windows / CLI
    │                          JDK 8/11 · Ant · D4J · Lang
    │
    └─ verify（独立重跑 compile/test，不信模型自述）
-`@
+```
 
 ---
 

@@ -123,6 +123,7 @@ Run it yourself with the `agent-run` workflow (`workflow_dispatch`, model
 | `docker/Dockerfile.d4j` | Sandbox image with Defects4J |
 | `docker/Dockerfile.app` | Self-contained release image |
 | `docs/architecture.md` | Design: graph, tools, skills, MCP, evaluation |
+| `docs/devlog.md` | Development log: decisions, D4J debugging, first repair |
 | `tests/` | Unit tests (no Docker, no LLM) |
 
 ## Roadmap
