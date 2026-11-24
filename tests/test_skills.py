@@ -12,6 +12,14 @@ def _write_skill(root: Path, name: str, description: str, body: str) -> None:
     )
 
 
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_builtin_skills_parse() -> None:
+    registry = SkillRegistry.discover([ROOT / "skills"])
+    assert {"java-repair", "junit5", "maven-diagnostics"} <= set(registry.skills)
+
+
 def test_parse_and_discover(tmp_path: Path) -> None:
     _write_skill(tmp_path, "java-repair", "Fix Java bugs", "# Steps\n1. reproduce")
     registry = SkillRegistry.discover([tmp_path])
