@@ -83,7 +83,8 @@ def run_repair(
             tools,
             system_prompt(workdir),
             max_steps=max_steps,
-            keep_messages=int(os.getenv("JAVA_AGENT_HISTORY", "12")),
+            keep_messages=int(os.getenv("JAVA_AGENT_HISTORY", "8")),
+            token_budget=int(os.getenv("JAVA_AGENT_TOKEN_BUDGET", "0")),
         )
         result = agent.invoke(
             {

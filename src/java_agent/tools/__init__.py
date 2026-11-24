@@ -43,7 +43,7 @@ def build_tools(ctx: ToolContext) -> list[BaseTool]:
     """Create the tool set bound to one sandbox workspace."""
 
     @tool
-    def read_file(path: str, start: int = 1, end: int = 200) -> str:
+    def read_file(path: str, start: int = 1, end: int = 120) -> str:
         """Read a text file with line numbers. Path is relative to the repo root."""
         try:
             full = _resolve(ctx, path)

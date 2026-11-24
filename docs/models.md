@@ -38,6 +38,20 @@ Tier 1 候选（以免费额度页实际可开启的为准）：
 - `glm-5.3`
 - `qwen3.8-plus`
 
+## 开发期用免费模型，最终用强模型
+
+两套用法，别混：
+
+| 阶段 | 模型 | 预算 | 目的 |
+|---|---|---|---|
+| 开发冒烟 | qwen3.8-flash / deepseek-v4.1-flash / glm-5.3-flash | 1 次尝试、12 步、15 万 token | 查工具、环境、循环是否正常 |
+| 最终取数 | qwen-plus / qwen3.8-max | 2 次尝试、25 步 | 产出可写进报告的 fix rate |
+
+冒烟不要求修好，只要求**轨迹里没有工具错误**。`dev-smoke` workflow 会在结束后跑
+`scripts/trajectory_health.py`，出现 `ERROR` / `command not found` / `No such file` 就判红。
+
+超预算保护：`JAVA_AGENT_TOKEN_BUDGET` 到顶后图会主动结束，不会像之前那样一个 bug 烧掉 100 万 token。
+
 ## 跑矩阵
 
 本地（需要镜像 + key）：

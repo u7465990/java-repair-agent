@@ -15,6 +15,7 @@ from langgraph.prebuilt import ToolNode
 class AgentState(TypedDict):
     messages: Annotated[list[AnyMessage], add_messages]
     steps: int
+    budget_exceeded: bool
 
 
 def _compact(messages: list[AnyMessage], keep: int) -> list[AnyMessage]:
@@ -33,18 +34,31 @@ def build_react_agent(
     system_prompt: str,
     max_steps: int = 40,
     keep_messages: int = 12,
+    token_budget: int = 0,
 ):
-    """Compile a tool-calling loop that stops on finish, plain text or budget."""
+    """Compile a tool-calling loop that stops on finish, text, steps or tokens."""
     bound = model.bind_tools(tools)
     tool_node = ToolNode(tools)
+    spent = {"tokens": 0}
 
     def call_model(state: AgentState) -> dict:
         history = _compact(state["messages"], keep_messages)
         messages = [SystemMessage(content=system_prompt), *history]
         response = bound.invoke(messages)
-        return {"messages": [response], "steps": state.get("steps", 0) + 1}
+        metadata = getattr(response, "usage_metadata", None) or {}
+        spent["tokens"] += int(metadata.get("input_tokens", 0)) + int(
+            metadata.get("output_tokens", 0)
+        )
+        exceeded = bool(token_budget) and spent["tokens"] > token_budget
+        return {
+            "messages": [response],
+            "steps": state.get("steps", 0) + 1,
+            "budget_exceeded": exceeded,
+        }
 
     def after_agent(state: AgentState) -> str:
+        if state.get("budget_exceeded"):
+            return "end"
         last = state["messages"][-1]
         calls = getattr(last, "tool_calls", None) or []
         if not calls:

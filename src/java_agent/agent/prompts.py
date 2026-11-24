@@ -29,8 +29,8 @@ def user_prompt(
     trigger = "\n".join(sorted(baseline.trigger)) or "(unknown)"
     failing = "\n".join(sorted(baseline.report.failing)[:20]) or "(none)"
     excerpt = baseline.report.output.strip()
-    if len(excerpt) > 3000:
-        excerpt = excerpt[-3000:]
+    if len(excerpt) > 1500:
+        excerpt = excerpt[-1500:]
     previous_block = ""
     if previous is not None:
         previous_block = f"""
