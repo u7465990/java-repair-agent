@@ -8,9 +8,9 @@
 An autonomous Java bug-fixing agent. The model decides what to read, search, change and test;
 a deterministic verification gate decides whether the bug is actually fixed.
 
-**Status: v0.2.** Sandbox, Defects4J adapter, a LangGraph ReAct agent with sandboxed
-tools, and independent verification work. Durable lifecycle graph, skills and MCP are next
-(see [roadmap](#roadmap)).
+**Status: v0.3.** First end-to-end repair: `Lang-1` fixed by `qwen-plus` in 2 attempts
+inside CI, trigger test passing with no new failures. Durable lifecycle graph, skills and MCP
+are next (see [roadmap](#roadmap)).
 
 ## Why it looks like this
 
@@ -96,6 +96,21 @@ The agent gets read/search/edit/bash/test tools and works inside the sandbox.
 After every attempt an independent verification step rebuilds and retests the
 repository, compares failures against the baseline, and feeds the report back.
 Artifacts land in `work/Lang-1/`: `patch.diff`, `verify.log`, `baseline-test.log`.
+
+## Results
+
+| Bug | Model | Attempts | Outcome |
+|---|---|---|---|
+| Lang-1 | `qwen-plus` (DashScope compatible API) | 2 | trigger passes, no new failures, 11 min |
+
+The first attempt patched `NumberUtils.createNumber` with a try/catch fallback and failed
+verification; the second attempt replaced the hex-digit heuristic with a `BigInteger`
+bit-length check and passed. Only production source was modified.
+Smaller `qwen-flash` did not localise the bug (it spent its budget exploring); `qwen-plus`
+was the smallest model that worked.
+
+Run it yourself with the `agent-run` workflow (`workflow_dispatch`, model
+`openai:qwen-plus`), or locally after building the sandbox image.
 
 ## Layout
 
