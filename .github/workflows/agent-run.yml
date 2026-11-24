@@ -64,4 +64,6 @@ jobs:
             work/**/verify.log
             work/**/baseline-test.log
             work/**/compile.log
+            work/**/trajectory-*.jsonl
+            work/**/attempt-*.diff
           if-no-files-found: warn
