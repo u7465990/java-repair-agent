@@ -1,7 +1,7 @@
 from fakes import FakeSandbox, ScriptedChatModel
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
-from java_agent.agent.react import build_react_agent
+from java_agent.agent.react import _compact, build_react_agent
 from java_agent.tools import ToolContext, build_tools
 
 
@@ -27,6 +27,21 @@ def test_agent_calls_tool_then_finishes() -> None:
     assert state["steps"] == 2
     assert any(isinstance(message, ToolMessage) for message in state["messages"])
     assert sandbox.calls
+
+
+def test_compact_never_starts_with_orphaned_tool_result() -> None:
+    messages = [
+        HumanMessage(content="start"),
+        AIMessage(
+            content="",
+            tool_calls=[{"name": "read_file", "args": {"path": "x"}, "id": "c1", "type": "tool_call"}],
+        ),
+        ToolMessage(content="file", tool_call_id="c1"),
+        HumanMessage(content="next"),
+    ]
+    compacted = _compact(messages, 2)
+    assert len(compacted) == 1
+    assert isinstance(compacted[0], HumanMessage)
 
 
 def test_agent_stops_at_step_budget() -> None:

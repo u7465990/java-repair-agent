@@ -29,7 +29,8 @@ jobs:
     env:
       JAVA_AGENT_BASE_URL: https://dashscope.aliyuncs.com/compatible-mode/v1
       JAVA_AGENT_TEMPERATURE: "0.1"
-      JAVA_AGENT_MAX_TOKENS: "2048"
+      JAVA_AGENT_MAX_TOKENS: "4096"
+      JAVA_AGENT_HISTORY: "12"
     steps:
       - uses: actions/checkout@v4
 
