@@ -92,7 +92,8 @@ export JAVA_AGENT_MODEL=anthropic:claude-sonnet-4-5
 uv run java-agent run -p Lang -b 1
 ```
 
-The agent gets read/search/edit/bash/test tools and works inside the sandbox.
+The agent gets read/search/edit/bash/test tools, plus on-demand skills: only the
+skill index is in the prompt, the body is pulled with `load_skill` when needed.
 After every attempt an independent verification step rebuilds and retests the
 repository, compares failures against the baseline, and feeds the report back.
 Artifacts land in `work/Lang-1/`: `patch.diff`, `verify.log`, `baseline-test.log`.
@@ -133,6 +134,8 @@ requirements are documented in [docs/models.md](docs/models.md).
 | `src/java_agent/sandbox/` | Local and Docker execution backends |
 | `src/java_agent/d4j.py` | Defects4J commands and output parsing |
 | `src/java_agent/eval/` | Case definition and baseline runner |
+| `src/java_agent/skills.py` | `SKILL.md` discovery and `load_skill` |
+| `skills/java-repair/SKILL.md` | Built-in repair workflow and anti-patterns |
 | `src/java_agent/cli.py` | `java-agent` commands |
 | `docker/Dockerfile.d4j` | Sandbox image with Defects4J |
 | `docker/Dockerfile.app` | Self-contained release image |

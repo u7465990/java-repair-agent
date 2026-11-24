@@ -6,8 +6,15 @@ from java_agent.eval.runner import Case, CaseResult
 from java_agent.verify import VerifyReport
 
 
-def system_prompt(workdir: str) -> str:
+def system_prompt(workdir: str, skills_index: str = "") -> str:
+    skills_block = ""
+    if skills_index:
+        skills_block = f"""
+Available skills (call load_skill with the name before starting a matching task):
+{skills_index}
+"""
     return f"""You are a Java repair agent working inside a sandboxed repository at {workdir}.
+{skills_block}
 
 Rules:
 - Only change production source files. Never edit tests or build files

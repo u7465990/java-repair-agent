@@ -15,6 +15,7 @@ from java_agent.agent.prompts import system_prompt, user_prompt
 from java_agent.agent.react import build_react_agent
 from java_agent.eval.runner import Case, run_baseline
 from java_agent.sandbox.base import Sandbox
+from java_agent.skills import SkillRegistry, build_skill_tools
 from java_agent.tools import ToolContext, build_tools
 from java_agent.usage import Usage, usage_from_messages
 from java_agent.verify import VerifyReport, verify
@@ -73,15 +74,23 @@ def run_repair(
     if not baseline.compile_ok:
         raise RuntimeError(f"baseline for {case.key} does not compile")
 
+    skill_roots = [
+        Path(item)
+        for item in os.getenv("JAVA_AGENT_SKILLS", "skills").split(os.pathsep)
+        if item
+    ]
+    registry = SkillRegistry.discover(skill_roots)
+
     history: list[VerifyReport] = []
     usage = Usage()
     started = time.perf_counter()
     for attempt in range(1, max_attempts + 1):
         tools = build_tools(ToolContext(sandbox=sandbox, workdir=workdir))
+        tools += build_skill_tools(registry)
         agent = build_react_agent(
             model,
             tools,
-            system_prompt(workdir),
+            system_prompt(workdir, registry.index()),
             max_steps=max_steps,
             keep_messages=int(os.getenv("JAVA_AGENT_HISTORY", "8")),
             token_budget=int(os.getenv("JAVA_AGENT_TOKEN_BUDGET", "0")),
