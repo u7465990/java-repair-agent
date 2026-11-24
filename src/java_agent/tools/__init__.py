@@ -126,7 +126,7 @@ def build_tools(ctx: ToolContext) -> list[BaseTool]:
 
     @tool
     def bash(command: str, timeout_seconds: int = 300) -> str:
-        """Run a shell command inside the workspace."""
+        """Run a shell command inside the workspace (cwd is the repo root)."""
         return _run(ctx, ["bash", "-lc", command], timeout=timeout_seconds)
 
     @tool

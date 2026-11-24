@@ -58,8 +58,7 @@ class DockerSandbox:
         if not self._started:
             raise SandboxError("sandbox is not running; call start() first")
         cmd = ["docker", "exec"]
-        if cwd is not None:
-            cmd += ["-w", cwd]
+        cmd += ["-w", cwd if cwd is not None else self.container_dir]
         cmd += [self.name, *args]
         completed = subprocess.run(
             cmd,
