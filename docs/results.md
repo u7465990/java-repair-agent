@@ -91,6 +91,21 @@ gh workflow run agent-run.yml \
   `compile_error` / `trigger_failing` / `new_failure`；`report.md` 会记录；
 - 编译失败时不再继续跑测试，直接把编译错误回灌给下一轮，省一次全量测试。
 
+### 提示词改进验证（kimi-k3）
+
+加入“按失败类型给下一步指令”和三个技能后，用 kimi-k3 重跑 Lang-1（2 次尝试、20 步）：
+
+```text
+fixed in 2 attempt(s)
+kind=passed
+audit_ok=True
+tokens: in 130,589 / out 12,794 | 7.0 min
+tool_calls=47 tool_errors=1 infra_errors=0
+```
+
+第一次尝试没有落笔修改，第二次在 `no_changes` 指令（“必须修改 src/main 下的文件”）约束下完成修复，
+审计通过。说明失败分类 + 针对性指令是有效的。
+
 ## 下一步
 
 - 加 diff 审计（禁止改测试/构建文件、限制改动规模）；
